@@ -231,6 +231,15 @@ namespace MailApiConfigure.Controllers
         }
 
 
+        [Route("TestApi")]
+        public void SecoundApi()
+        {
+
+        }
+
+
+
+
 
     }
 }
