@@ -22,30 +22,38 @@ namespace MailApiConfigure.Controllers
             string result = string.Empty;
             try
             {
-                string text = System.IO.File.ReadAllText((ConfigurationSettings.AppSettings["InvokanaTemplatePath"]));
-                text = text.Replace("%Diabetes2%", model.Diabetes2);
-                text = text.Replace("%InvokanaWhen%", model.InvokanaWhen);
-                text = text.Replace("%PrescribingInvokana%", model.PrescribingInvokana);
-                text = text.Replace("%PharmacyFilling%", model.PharmacyFilling);
-                text = text.Replace("%CeaseTakingInvokana%", model.CeaseTakingInvokana);
-                text = text.Replace("%Lowerextremityamputation%", model.Lowerextremityamputation);
-                text = text.Replace("%Identifiedinjury%", model.Identifiedinjury);
-                text = text.Replace("%Addressofthehospitals%", model.Addressofthehospitals);
-                text = text.Replace("%Within15dayuse%", model.Within15dayuse);
-                text = text.Replace("%Kidneyfailure%", model.Kidneyfailure);
-                text = text.Replace("%Lawfirmbefore%", model.Lawfirmbefore);
-                text = text.Replace("%HowOld%", model.HowOld);
-                text = text.Replace("%FullName%", model.FullName);
-                text = text.Replace("%Address%", model.Address);
-                text = text.Replace("%City%", model.City);
-                text = text.Replace("%State%", model.State);
-                text = text.Replace("%Zip%", model.Zip);
-                text = text.Replace("%PhoneNo%", model.PhoneNo);
-                text = text.Replace("%Email%", model.Email);
-                text = text.Replace("%Besttimetocontact%", model.Besttimetocontact);
+                if(SaveApplicant(model.FullName, model.Email, model.PhoneNo, model.HowOld, model.Address, model.City, model.State, model.Zip, model.Besttimetocontact))
+                {
+                    if (SaveInvokanaClaim(model))
+                    {
+                        string text = System.IO.File.ReadAllText((ConfigurationSettings.AppSettings["InvokanaTemplatePath"]));
+                        text = text.Replace("%Diabetes2%", model.Diabetes2);
+                        text = text.Replace("%InvokanaWhen%", model.InvokanaWhen);
+                        text = text.Replace("%PrescribingInvokana%", model.PrescribingInvokana);
+                        text = text.Replace("%PharmacyFilling%", model.PharmacyFilling);
+                        text = text.Replace("%CeaseTakingInvokana%", model.CeaseTakingInvokana);
+                        text = text.Replace("%Lowerextremityamputation%", model.Lowerextremityamputation);
+                        text = text.Replace("%Identifiedinjury%", model.Identifiedinjury);
+                        text = text.Replace("%Addressofthehospitals%", model.Addressofthehospitals);
+                        text = text.Replace("%Within15dayuse%", model.Within15dayuse);
+                        text = text.Replace("%Kidneyfailure%", model.Kidneyfailure);
+                        text = text.Replace("%Lawfirmbefore%", model.Lawfirmbefore);
+                        text = text.Replace("%HowOld%", model.HowOld);
+                        text = text.Replace("%FullName%", model.FullName);
+                        text = text.Replace("%Address%", model.Address);
+                        text = text.Replace("%City%", model.City);
+                        text = text.Replace("%State%", model.State);
+                        text = text.Replace("%Zip%", model.Zip);
+                        text = text.Replace("%PhoneNo%", model.PhoneNo);
+                        text = text.Replace("%Email%", model.Email);
+                        text = text.Replace("%Besttimetocontact%", model.Besttimetocontact);
 
-                SendEmail(text);
-                result = ConfigurationSettings.AppSettings["SuccessMsg"];
+                        SendEmail(text);
+                        result = ConfigurationSettings.AppSettings["SuccessMsg"];
+                    }
+                }
+                
+                
             }
             catch (Exception e)
             {
@@ -212,6 +220,7 @@ namespace MailApiConfigure.Controllers
                         bool isactive;
                         Boolean.TryParse(reader["IsActive"].ToString(), out isactive);
                         user.IsActive = isactive;
+                        user.token = "QpwL5tke4Pnpja7X";
                     }
                     con.Close();
                 }
@@ -224,22 +233,92 @@ namespace MailApiConfigure.Controllers
             return user;
         }
 
-        [Route("TestApi")]
-        public void TestApi()
+        public bool SaveApplicant(string name, string email, string phoneno, string dob, string address, string city, string state, string zip, string bestttc)
         {
-            
+            bool isInserted = false;
+            SqlConnection con = null;
+            try
+            {
+                string strcon = ConfigurationManager.ConnectionStrings["dbconnection"].ConnectionString;
+                using (con = new SqlConnection(strcon))
+                {
+                    con.Open();
+                    string query = string.Format("insert into Applicant(Name,Email,PhoneNo,DOB,Address,City,State,Zip,BestTTC,Status,IsActive) values('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}')",
+                        name,email,phoneno,dob, address, city,state,zip,bestttc,1, true);
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    int result = cmd.ExecuteNonQuery();
+                    if (result > 0)
+                        isInserted = true;
+
+                    con.Close();
+                }
+
+            }
+            catch (Exception e)
+            {
+                con.Close();
+            }
+            return isInserted;
         }
 
-
-        [Route("TestApi")]
-        public void SecoundApi()
+        public bool SaveInvokanaClaim(InvokanaModel m)
         {
+            bool isInserted = false;
+            SqlConnection con = null;
+            try
+            {
+                string strcon = ConfigurationManager.ConnectionStrings["dbconnection"].ConnectionString;
+                using (con = new SqlConnection(strcon))
+                {
+                    con.Open();
+                    string query = string.Format("insert into InvokanaClaim(Diabetes2,InvokanaWhen,PrescribingInvokana,PharmacyFilling,CeaseTakingInvokana,"+
+                        "Lowerextremityamputation,Identifiedinjury,Addressofthehospitals,Within15dayuse,Kidneyfailure,Lawfirmbefore,IsActive) values('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}')",
+                        m.Diabetes2,m.InvokanaWhen,m.PrescribingInvokana,m.PharmacyFilling,m.CeaseTakingInvokana,m.Lowerextremityamputation,m.Identifiedinjury,m.Addressofthehospitals,
+                        m.Within15dayuse,m.Kidneyfailure,m.Lawfirmbefore,true);
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    int result = cmd.ExecuteNonQuery();
+                    if (result > 0)
+                        isInserted = true;
 
+                    con.Close();
+                }
+
+            }
+            catch (Exception e)
+            {
+                con.Close();
+            }
+            return isInserted;
         }
 
+        //public bool SaveXaralto(XareltoModel m)
+        //{
+        //    bool isInserted = false;
+        //    SqlConnection con = null;
+        //    try
+        //    {
+        //        string strcon = ConfigurationManager.ConnectionStrings["dbconnection"].ConnectionString;
+        //        using (con = new SqlConnection(strcon))
+        //        {
+        //            con.Open();
+        //            string query = string.Format("insert into XareltoClaim(Diabetes2,InvokanaWhen,PrescribingInvokana,PharmacyFilling,CeaseTakingInvokana," +
+        //                "Lowerextremityamputation,Identifiedinjury,Addressofthehospitals,Within15dayuse,Kidneyfailure,Lawfirmbefore,IsActive) values('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}')",
+        //                m.Diabetes2, m.InvokanaWhen, m.PrescribingInvokana, m.PharmacyFilling, m.CeaseTakingInvokana, m.Lowerextremityamputation, m.Identifiedinjury, m.Addressofthehospitals,
+        //                m.Within15dayuse, m.Kidneyfailure, m.Lawfirmbefore, true);
+        //            SqlCommand cmd = new SqlCommand(query, con);
+        //            int result = cmd.ExecuteNonQuery();
+        //            if (result > 0)
+        //                isInserted = true;
 
+        //            con.Close();
+        //        }
 
-
-
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        con.Close();
+        //    }
+        //    return isInserted;
+        //}
     }
 }

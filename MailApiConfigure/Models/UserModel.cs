@@ -13,6 +13,7 @@ namespace MailApiConfigure.Models
         public string MobileNo{ get; set; }
         public int Status { get; set; }
         public bool IsActive { get; set; }
+        public string token { get; set; }
 
     }
 }
