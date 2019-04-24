@@ -7,6 +7,8 @@ namespace MailApiConfigure.Models
 {
     public class IVCModel
     {
+        public int Id { get; set; }
+        public int ApplicantId { get; set; }
         public string BloodClotFirst { get; set; }
         public string BrandNmaeIvcBloodClot { get; set; }
         public string ProofIvcBloodClot { get; set; }

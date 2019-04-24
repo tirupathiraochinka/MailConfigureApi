@@ -7,6 +7,8 @@ namespace MailApiConfigure.Models
 {
     public class InvokanaModel
     {
+        public int Id { get; set; }
+        public int ApplicantId { get; set; }
         public string Diabetes2 { get; set; }
         public string InvokanaWhen { get; set; }
         public string PrescribingInvokana { get; set; }

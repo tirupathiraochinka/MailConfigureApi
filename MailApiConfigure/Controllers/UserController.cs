@@ -29,8 +29,16 @@ namespace MailApiConfigure.Controllers
                 {
                     string password = CreateRandomPassword(6);
                     con.Open();
-                    string query = string.Format("insert into users(LoginName,Password,Name,EmailId,MobileNo,Status,IsActive) values('{0}','{1}','{2}','{3}','{4}','{5}','{6}')", 
-                        user.EmailId, password, user.Name,user.EmailId,user.MobileNo,2,true);
+                    string query = string.Empty;
+                    if (user.Id != 0 && user.Id>0)
+                    {
+                        query = string.Format("update users set Name='{0}',MobileNo='{1}'where Id='{2}'", user.Name, user.MobileNo, user.Id);
+                    }
+                    else
+                    {
+                        query = string.Format("insert into users(LoginName,Password,Name,EmailId,MobileNo,Status,IsActive) values('{0}','{1}','{2}','{3}','{4}','{5}','{6}')",
+                            user.EmailId, password, user.Name, user.EmailId, user.MobileNo, 2, true);
+                    }
                     SqlCommand cmd = new SqlCommand(query, con);
                     int result = cmd.ExecuteNonQuery();
                     if (result>0)
@@ -53,6 +61,38 @@ namespace MailApiConfigure.Controllers
         }
 
         [HttpGet]
+        [Route("InActiveUser")]
+        public bool InActiveUser(string userid)
+        {
+            bool isDeleted = false;
+            SqlConnection con = null;
+            try
+            {
+                string strcon = ConfigurationManager.ConnectionStrings["dbconnection"].ConnectionString;
+                using (con = new SqlConnection(strcon))
+                {
+                    string password = CreateRandomPassword(6);
+                    con.Open();
+
+                    string query = string.Format("update users set IsActive='{0}' where Id='{1}'", false, userid);
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    int result = cmd.ExecuteNonQuery();
+                    if (result > 0)
+                        isDeleted = true;
+
+                    con.Close();
+                }
+
+            }
+            catch (Exception e)
+            {
+                isDeleted = false;
+                con.Close();
+            }
+            return isDeleted;
+        }
+
+        [HttpGet]
         [Route("GetUserList")]
         public List<UserModel> GetUserList()
         {
@@ -64,7 +104,7 @@ namespace MailApiConfigure.Controllers
                 using (con = new SqlConnection(strcon))
                 {
                     con.Open();
-                    string query = string.Format("select *  from users where status=1");
+                    string query = string.Format("select *  from users where status=2");
                     SqlCommand cmd = new SqlCommand(query, con);
                     SqlDataReader reader = cmd.ExecuteReader();
                     userlist = new List<UserModel>();

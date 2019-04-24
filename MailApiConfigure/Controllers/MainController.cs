@@ -22,7 +22,8 @@ namespace MailApiConfigure.Controllers
             string result = string.Empty;
             try
             {
-                if(SaveApplicant(model.FullName, model.Email, model.PhoneNo, model.HowOld, model.Address, model.City, model.State, model.Zip, model.Besttimetocontact))
+                model.ApplicantId=SaveApplicant(model.FullName, model.Email, model.PhoneNo, model.HowOld, model.Address, model.City, model.State, model.Zip, model.Besttimetocontact);
+                if (model.ApplicantId>0)
                 {
                     if (SaveInvokanaClaim(model))
                     {
@@ -233,9 +234,9 @@ namespace MailApiConfigure.Controllers
             return user;
         }
 
-        public bool SaveApplicant(string name, string email, string phoneno, string dob, string address, string city, string state, string zip, string bestttc)
+        public int SaveApplicant(string name, string email, string phoneno, string dob, string address, string city, string state, string zip, string bestttc)
         {
-            bool isInserted = false;
+            int applicantId = 0;
             SqlConnection con = null;
             try
             {
@@ -243,22 +244,20 @@ namespace MailApiConfigure.Controllers
                 using (con = new SqlConnection(strcon))
                 {
                     con.Open();
-                    string query = string.Format("insert into Applicant(Name,Email,PhoneNo,DOB,Address,City,State,Zip,BestTTC,Status,IsActive) values('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}')",
+                    string query = string.Format("insert into Applicant(Name,Email,PhoneNo,DOB,Address,City,State,Zip,BestTTC,Status,IsActive) output INSERTED.ID values('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}')",
                         name,email,phoneno,dob, address, city,state,zip,bestttc,1, true);
                     SqlCommand cmd = new SqlCommand(query, con);
-                    int result = cmd.ExecuteNonQuery();
-                    if (result > 0)
-                        isInserted = true;
-
+                    applicantId = Convert.ToInt32(cmd.ExecuteScalar());
                     con.Close();
                 }
 
             }
             catch (Exception e)
             {
+                applicantId = 0;
                 con.Close();
             }
-            return isInserted;
+            return applicantId;
         }
 
         public bool SaveInvokanaClaim(InvokanaModel m)
@@ -271,9 +270,9 @@ namespace MailApiConfigure.Controllers
                 using (con = new SqlConnection(strcon))
                 {
                     con.Open();
-                    string query = string.Format("insert into InvokanaClaim(Diabetes2,InvokanaWhen,PrescribingInvokana,PharmacyFilling,CeaseTakingInvokana,"+
-                        "Lowerextremityamputation,Identifiedinjury,Addressofthehospitals,Within15dayuse,Kidneyfailure,Lawfirmbefore,IsActive) values('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}')",
-                        m.Diabetes2,m.InvokanaWhen,m.PrescribingInvokana,m.PharmacyFilling,m.CeaseTakingInvokana,m.Lowerextremityamputation,m.Identifiedinjury,m.Addressofthehospitals,
+                    string query = string.Format("insert into InvokanaClaim(ApplicantId,Diabetes2,InvokanaWhen,PrescribingInvokana,PharmacyFilling,CeaseTakingInvokana,"+
+                        "Lowerextremityamputation,Identifiedinjury,Addressofthehospitals,Within15dayuse,Kidneyfailure,Lawfirmbefore,IsActive) values('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}')",
+                        m.ApplicantId,m.Diabetes2,m.InvokanaWhen,m.PrescribingInvokana,m.PharmacyFilling,m.CeaseTakingInvokana,m.Lowerextremityamputation,m.Identifiedinjury,m.Addressofthehospitals,
                         m.Within15dayuse,m.Kidneyfailure,m.Lawfirmbefore,true);
                     SqlCommand cmd = new SqlCommand(query, con);
                     int result = cmd.ExecuteNonQuery();

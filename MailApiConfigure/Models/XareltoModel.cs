@@ -7,6 +7,8 @@ namespace MailApiConfigure.Models
 {
     public class XareltoModel
     {
+        public int Id { get; set; }
+        public int ApplicantId { get; set; }
         public string XareltoFirst { get; set; }
         public string ComplicationsOrSideeffects { get; set; }
         public string XareltoReason { get; set; }
